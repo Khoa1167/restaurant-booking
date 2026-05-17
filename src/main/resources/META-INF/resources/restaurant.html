@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Hương Vị Restaurant</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#0f0d0b;--surface:#1a1712;--surface2:#252219;--surface3:#2e2923;--gold:#c9a84c;--gold-light:#e2c47a;--gold-dim:rgba(201,168,76,.12);--text:#f0ebe0;--text-muted:#8a8070;--text-dim:#5a5248;--red:#c0392b;--green:#27ae60;--border:#2e2a22;--border2:#3a352a;--radius:10px;--radius-lg:16px}
+*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:200;background:rgba(15,13,11,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:62px}
+.nav-logo{font-family:'Playfair Display',serif;font-size:1.35rem;color:var(--gold);cursor:pointer;user-select:none}
+.nav-links{display:flex;gap:2px}
+.nav-links button{background:none;border:none;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:.875rem;padding:.4rem 1rem;border-radius:7px;cursor:pointer;transition:all .2s}
+.nav-links button:hover,.nav-links button.active{background:var(--surface2);color:var(--gold)}
+@media(max-width:700px){.nav-links button{padding:.4rem .6rem;font-size:.78rem}.nav-right #userInfo{display:none}}
+.nav-right{display:flex;align-items:center;gap:.75rem}
+#userInfo{font-size:.82rem;color:var(--text-muted)}
+.btn-nav{background:var(--gold);color:#0f0d0b;border:none;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;padding:.4rem 1rem;border-radius:7px;cursor:pointer;transition:all .2s}
+.btn-nav:hover{background:var(--gold-light)}
+.btn-nav-out{background:none;border:1px solid var(--border);color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:.8rem;padding:.35rem .85rem;border-radius:7px;cursor:pointer;transition:all .2s}
+.btn-nav-out:hover{border-color:var(--red);color:var(--red)}
+
+/* PAGES */
+.page{display:none}.page.active{display:block}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;padding:.65rem 1.5rem;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:500;cursor:pointer;border:none;transition:all .2s}
+.btn-primary{background:var(--gold);color:#0f0d0b}.btn-primary:hover{background:var(--gold-light)}
+.btn-outline{background:none;border:1px solid var(--border2);color:var(--text-muted)}.btn-outline:hover{border-color:var(--gold);color:var(--gold)}
+.btn-danger{background:none;border:1px solid rgba(192,57,43,.4);color:var(--red);font-family:'DM Sans',sans-serif;font-size:.8rem;padding:.3rem .75rem;border-radius:6px;cursor:pointer;transition:all .2s}.btn-danger:hover{background:var(--red);color:#fff}
+.btn-sm{padding:.35rem .85rem;font-size:.82rem}.btn-full{width:100%}
+
+/* FORMS */
+.form-group{margin-bottom:1.1rem}
+label{display:block;font-size:.78rem;color:var(--text-muted);margin-bottom:.4rem;letter-spacing:.04em;text-transform:uppercase}
+input,select,textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.93rem;padding:.65rem .95rem;outline:none;transition:border .2s;-webkit-appearance:none}
+input:focus,select:focus,textarea:focus{border-color:var(--gold)}
+input::placeholder,textarea::placeholder{color:var(--text-dim)}
+textarea{resize:vertical;min-height:90px;line-height:1.5}
+select option{background:var(--surface2)}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-bottom:1rem}
+
+/* LAYOUT */
+.container{max-width:960px;margin:0 auto;padding:0 1.5rem}
+.page-header{padding:2.5rem 0 .5rem}
+.page-header h1{font-family:'Playfair Display',serif;font-size:2rem;color:var(--gold);margin-bottom:.35rem}
+.page-header p{color:var(--text-muted);font-size:.9rem}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:650px){.grid-2{grid-template-columns:1fr}}
+h2{font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--text);margin-bottom:1rem}
+.divider{border:none;border-top:1px solid var(--border);margin:1.5rem 0}
+
+/* BADGES */
+.badge{display:inline-block;font-size:.72rem;padding:.2rem .6rem;border-radius:99px;font-weight:500}
+.badge-pending{background:rgba(201,168,76,.15);color:var(--gold)}
+.badge-confirmed{background:rgba(39,174,96,.15);color:var(--green)}
+.badge-cancelled{background:rgba(192,57,43,.15);color:var(--red)}
+
+/* ALERTS */
+.alert{padding:.75rem 1rem;border-radius:8px;font-size:.875rem;margin-bottom:1rem}
+.alert-success{background:rgba(39,174,96,.12);color:#2ecc71;border:1px solid rgba(39,174,96,.25)}
+.alert-error{background:rgba(192,57,43,.12);color:#e74c3c;border:1px solid rgba(192,57,43,.25)}
+.empty{text-align:center;padding:3rem 1rem;color:var(--text-muted)}
+.empty-icon{font-size:2.5rem;margin-bottom:.75rem}
+.spinner{width:32px;height:32px;border:3px solid var(--border2);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── LANDING ── */
+.hero{position:relative;min-height:92vh;display:flex;align-items:center;overflow:hidden;background:linear-gradient(160deg,#0f0d0b 0%,#1a140a 50%,#0d0b08 100%)}
+.hero-bg{position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1400&q=80') center/cover no-repeat;opacity:.18;filter:saturate(0)}
+.hero-overlay{position:absolute;inset:0;background:radial-gradient(ellipse at 30% 50%,rgba(201,168,76,.08) 0%,transparent 60%)}
+.hero-content{position:relative;z-index:1;padding:0 2rem;max-width:960px;margin:0 auto;width:100%}
+.hero-tag{display:inline-flex;align-items:center;gap:.5rem;background:var(--gold-dim);border:1px solid rgba(201,168,76,.25);color:var(--gold);font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;padding:.35rem .9rem;border-radius:99px;margin-bottom:1.75rem}
+.hero h1{font-family:'Playfair Display',serif;font-size:clamp(2.8rem,6vw,5rem);font-weight:700;line-height:1.1;margin-bottom:1.25rem}
+.hero h1 em{font-style:italic;color:var(--gold)}
+.hero-desc{font-size:1.05rem;color:var(--text-muted);max-width:520px;line-height:1.7;margin-bottom:2.5rem}
+.hero-actions{display:flex;gap:1rem;flex-wrap:wrap}
+.hero-actions .btn{padding:.8rem 2rem;font-size:.95rem}
+.hero-stats{display:flex;gap:2.5rem;margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border);flex-wrap:wrap}
+.hero-stat-num{font-family:'Playfair Display',serif;font-size:1.8rem;color:var(--gold)}
+.hero-stat-label{font-size:.8rem;color:var(--text-muted);margin-top:.1rem}
+.section-wrap{padding:5rem 0}
+.section-wrap.alt{background:var(--surface)}
+.section-tag{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:.75rem}
+.section-title{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,4vw,2.5rem);margin-bottom:1rem;line-height:1.2}
+.section-desc{color:var(--text-muted);font-size:.95rem;max-width:500px;line-height:1.7;margin-bottom:3rem}
+.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1.5rem}
+.feature-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.75rem;transition:border .2s,transform .2s}
+.feature-card:hover{border-color:rgba(201,168,76,.3);transform:translateY(-3px)}
+.feature-icon{font-size:1.75rem;margin-bottom:1rem}
+.feature-card h3{font-family:'Playfair Display',serif;font-size:1.05rem;margin-bottom:.5rem}
+.feature-card p{font-size:.85rem;color:var(--text-muted);line-height:1.6}
+.highlight-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.25rem;margin-top:2rem}
+.hi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;transition:all .2s}
+.hi-card:hover{border-color:rgba(201,168,76,.3);transform:translateY(-3px)}
+.hi-img{height:150px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:3.5rem}
+.hi-body{padding:1.1rem 1.25rem}
+.hi-cat{font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin-bottom:.25rem}
+.hi-name{font-family:'Playfair Display',serif;font-size:1.05rem;margin-bottom:.35rem}
+.hi-desc{font-size:.82rem;color:var(--text-muted);line-height:1.5;margin-bottom:.75rem}
+.hi-footer{display:flex;align-items:center;justify-content:space-between}
+.hi-price{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--gold)}
+.testi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.25rem;margin-top:2rem}
+.testi-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem}
+.testi-stars{color:var(--gold);font-size:1rem;margin-bottom:.75rem}
+.testi-text{font-size:.88rem;color:var(--text-muted);line-height:1.7;margin-bottom:1rem;font-style:italic}
+.testi-author{font-size:.82rem;font-weight:500}
+.cta-section{padding:5rem 0;text-align:center;background:linear-gradient(135deg,var(--bg) 0%,#1a140a 50%,var(--bg) 100%)}
+.cta-section h2{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,4vw,2.8rem);margin-bottom:1rem}
+.cta-section p{color:var(--text-muted);font-size:.95rem;max-width:440px;margin:0 auto 2rem;line-height:1.7}
+footer{background:var(--surface);border-top:1px solid var(--border);padding:3rem 0 1.5rem}
+.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:2rem;margin-bottom:2rem}
+@media(max-width:650px){.footer-grid{grid-template-columns:1fr}}
+.footer-brand{font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--gold);margin-bottom:.75rem}
+.footer-desc{font-size:.85rem;color:var(--text-muted);line-height:1.7}
+.footer-heading{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:.75rem}
+.footer-links{list-style:none;display:flex;flex-direction:column;gap:.45rem}
+.footer-links li{font-size:.85rem;color:var(--text-dim);cursor:pointer;transition:color .2s}
+.footer-links li:hover{color:var(--gold)}
+.footer-bottom{border-top:1px solid var(--border);padding-top:1.25rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem}
+.footer-bottom p{font-size:.8rem;color:var(--text-dim)}
+
+/* ── MENU PAGE ── */
+.menu-filter{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:2rem}
+.filter-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:.82rem;padding:.4rem 1rem;border-radius:99px;cursor:pointer;transition:all .2s}
+.filter-btn:hover,.filter-btn.active{background:var(--gold-dim);border-color:rgba(201,168,76,.4);color:var(--gold)}
+.menu-full-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1.25rem}
+.menu-full-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;transition:all .2s}
+.menu-full-card:hover{border-color:rgba(201,168,76,.3);transform:translateY(-2px)}
+.mf-img{height:140px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:3rem}
+.mf-body{padding:1rem 1.2rem}
+.mf-cat{font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin-bottom:.2rem}
+.mf-name{font-family:'Playfair Display',serif;font-size:1rem;margin-bottom:.3rem}
+.mf-desc{font-size:.8rem;color:var(--text-muted);line-height:1.5;margin-bottom:.65rem}
+.mf-footer{display:flex;justify-content:space-between;align-items:center}
+.mf-price{font-family:'Playfair Display',serif;font-size:1rem;color:var(--gold)}
+.mf-hot{font-size:.7rem;padding:.15rem .5rem;border-radius:99px;background:rgba(201,168,76,.12);color:var(--gold)}
+
+/* ── BOOKING ── */
+.booking-layout{display:grid;grid-template-columns:1fr 1.4fr;gap:1.5rem;align-items:start}
+@media(max-width:700px){.booking-layout{grid-template-columns:1fr}}
+.table-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:.65rem;margin-bottom:1rem}
+.table-item{background:var(--surface2);border:2px solid var(--border);border-radius:var(--radius);padding:.9rem .75rem;text-align:center;cursor:pointer;transition:all .2s}
+.table-item:hover{border-color:var(--border2)}
+.table-item.selected{border-color:var(--gold);background:var(--gold-dim)}
+.table-item.occupied{opacity:.38;cursor:not-allowed}
+.table-icon{font-size:1.4rem;margin-bottom:.25rem}
+.table-name{font-size:.8rem;font-weight:500}
+.table-cap{font-size:.72rem;color:var(--text-muted)}
+.table-legend{display:flex;gap:1rem;font-size:.78rem;color:var(--text-muted);margin-bottom:.75rem;flex-wrap:wrap}
+.legend-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px}
+
+/* ── HISTORY ── */
+.res-item{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem}
+.res-info h3{font-size:.95rem;font-weight:500;margin-bottom:.3rem}
+.res-info p{font-size:.82rem;color:var(--text-muted);line-height:1.6}
+.res-actions{display:flex;gap:.4rem;flex-shrink:0;align-items:center}
+
+/* ── REVIEW ── */
+.stars-input{display:flex;gap:5px;margin-bottom:.5rem}
+.star{font-size:1.6rem;cursor:pointer;color:var(--border2);transition:color .15s;user-select:none}
+.star.active{color:var(--gold)}
+.review-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:.75rem}
+.review-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.4rem}
+.review-author{font-weight:500;font-size:.9rem}
+.review-date{font-size:.75rem;color:var(--text-muted)}
+.review-stars{color:var(--gold);font-size:.9rem;margin-bottom:.35rem}
+.review-text{font-size:.85rem;color:var(--text-muted);line-height:1.6}
+
+/* ── AUTH ── */
+.auth-wrap{max-width:420px;margin:4rem auto;padding:0 1rem}
+.auth-logo{font-family:'Playfair Display',serif;font-size:2.2rem;color:var(--gold);text-align:center;margin-bottom:.25rem}
+.auth-sub{text-align:center;color:var(--text-muted);font-size:.88rem;margin-bottom:2rem}
+.tab-switch{display:flex;background:var(--surface2);border-radius:9px;padding:3px;margin-bottom:1.5rem}
+.tab-switch button{flex:1;background:none;border:none;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:.88rem;padding:.5rem;border-radius:7px;cursor:pointer;transition:all .2s}
+.tab-switch button.active{background:var(--surface);color:var(--text)}
+.demo-row{display:flex;gap:.5rem;margin-top:.75rem}
+
+/* ── ADMIN ── */
+.admin-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem}
+@media(max-width:700px){.admin-stats{grid-template-columns:1fr 1fr}}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem;text-align:center}
+.stat-num{font-family:'Playfair Display',serif;font-size:2rem;color:var(--gold)}
+.stat-label{font-size:.78rem;color:var(--text-muted);margin-top:.15rem}
+.admin-tabs{display:flex;gap:2px;background:var(--surface2);border-radius:9px;padding:3px;margin-bottom:1.5rem;width:fit-content}
+.admin-tab{background:none;border:none;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:.85rem;padding:.45rem 1.1rem;border-radius:7px;cursor:pointer;transition:all .2s}
+.admin-tab.active{background:var(--surface);color:var(--text)}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo" onclick="showPage('pageLanding')">🍽 Hương Vị</div>
+  <div class="nav-links" id="navLinks"></div>
+  <div class="nav-right">
+    <span id="userInfo"></span>
+    <button class="btn-nav" id="btnLogin" onclick="showPage('pageAuth')" style="display:none">Đăng nhập</button>
+    <button class="btn-nav-out" id="btnLogout" onclick="logout()" style="display:none">Đăng xuất</button>
+  </div>
+</nav>
+
+<!-- ══ LANDING ══ -->
+<div class="page active" id="pageLanding">
+  <section class="hero">
+    <div class="hero-bg"></div><div class="hero-overlay"></div>
+    <div class="hero-content">
+      <div class="hero-tag">✦ Nhà hàng cao cấp tại Hà Nội</div>
+      <h1>Trải nghiệm<br/><em>ẩm thực</em> tinh tế<br/>khó quên</h1>
+      <p class="hero-desc">Nơi hội tụ tinh hoa ẩm thực Việt Nam và quốc tế, mang đến những bữa ăn trọn vẹn trong không gian sang trọng và ấm cúng.</p>
+      <div class="hero-actions">
+        <button class="btn btn-primary" onclick="goBooking()">Đặt bàn ngay</button>
+        <button class="btn btn-outline" onclick="showPage('pageMenu')">Xem thực đơn</button>
+      </div>
+      <div class="hero-stats">
+        <div><div class="hero-stat-num">12+</div><div class="hero-stat-label">Năm kinh nghiệm</div></div>
+        <div><div class="hero-stat-num">200+</div><div class="hero-stat-label">Món ăn đặc sắc</div></div>
+        <div><div class="hero-stat-num">4.9★</div><div class="hero-stat-label">Đánh giá TB</div></div>
+        <div><div class="hero-stat-num">50k+</div><div class="hero-stat-label">Khách hài lòng</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-wrap alt">
+    <div class="container">
+      <div class="section-tag">✦ Tại sao chọn chúng tôi</div>
+      <div class="section-title">Đẳng cấp trong<br/>từng chi tiết nhỏ</div>
+      <p class="section-desc">Từ nguyên liệu tươi sạch đến đầu bếp tài năng, mỗi món ăn là một tác phẩm nghệ thuật.</p>
+      <div class="features-grid">
+        <div class="feature-card"><div class="feature-icon">👨‍🍳</div><h3>Đầu bếp 5 sao</h3><p>Đội ngũ được đào tạo tại các trường ẩm thực hàng đầu thế giới, mang đến hương vị độc đáo.</p></div>
+        <div class="feature-card"><div class="feature-icon">🌿</div><h3>Nguyên liệu tươi sạch</h3><p>100% nguyên liệu chọn lọc từ nông trại hữu cơ uy tín, đảm bảo an toàn thực phẩm tuyệt đối.</p></div>
+        <div class="feature-card"><div class="feature-icon">🕯️</div><h3>Không gian sang trọng</h3><p>Thiết kế nội thất tinh tế, ánh sáng ấm áp tạo nên không khí lãng mạn và đẳng cấp.</p></div>
+        <div class="feature-card"><div class="feature-icon">📱</div><h3>Đặt bàn trực tuyến</h3><p>Đặt bàn nhanh chóng, nhận xác nhận ngay lập tức, quản lý lịch đặt dễ dàng mọi lúc mọi nơi.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-wrap">
+    <div class="container">
+      <div class="section-tag">✦ Thực đơn nổi bật</div>
+      <div class="section-title">Món ăn được<br/>yêu thích nhất</div>
+      <div class="highlight-grid">
+        <div class="hi-card"><div class="hi-img">🥩</div><div class="hi-body"><div class="hi-cat">Món chính</div><div class="hi-name">Bít tết bò Wagyu A5</div><div class="hi-desc">Bò Wagyu A5 áp chảo với sốt truffle đen và khoai tây nghiền bơ.</div><div class="hi-footer"><div class="hi-price">850.000đ</div><button class="btn btn-outline btn-sm" onclick="showPage('pageMenu')">Xem thêm</button></div></div></div>
+        <div class="hi-card"><div class="hi-img">🦞</div><div class="hi-body"><div class="hi-cat">Hải sản</div><div class="hi-name">Tôm hùm nướng phô mai</div><div class="hi-desc">Tôm hùm Canada tươi sống nướng với sốt bơ chanh và phô mai Parmesan.</div><div class="hi-footer"><div class="hi-price">1.200.000đ</div><button class="btn btn-outline btn-sm" onclick="showPage('pageMenu')">Xem thêm</button></div></div></div>
+        <div class="hi-card"><div class="hi-img">🍜</div><div class="hi-body"><div class="hi-cat">Đặc sản Việt</div><div class="hi-name">Phở bò hầm 12 tiếng</div><div class="hi-desc">Nước dùng hầm xương bò 12 tiếng, thịt bò tái chín, rau thơm đặc biệt.</div><div class="hi-footer"><div class="hi-price">220.000đ</div><button class="btn btn-outline btn-sm" onclick="showPage('pageMenu')">Xem thêm</button></div></div></div>
+      </div>
+      <div style="text-align:center;margin-top:2rem"><button class="btn btn-outline" onclick="showPage('pageMenu')">Xem toàn bộ thực đơn →</button></div>
+    </div>
+  </section>
+
+  <section class="section-wrap alt">
+    <div class="container">
+      <div class="section-tag">✦ Khách hàng nói gì</div>
+      <div class="section-title">Đánh giá từ<br/>thực khách</div>
+      <div class="testi-grid">
+        <div class="testi-card"><div class="testi-stars">★★★★★</div><div class="testi-text">"Không gian tuyệt vời, đồ ăn ngon xuất sắc. Bít tết Wagyu là món tôi ăn ngon nhất từ trước đến nay!"</div><div class="testi-author">Nguyễn Minh Anh <span style="color:var(--text-muted);font-weight:300">· Hà Nội</span></div></div>
+        <div class="testi-card"><div class="testi-stars">★★★★★</div><div class="testi-text">"Đặt bàn online rất tiện lợi, nhân viên phục vụ chu đáo. Bữa tối kỷ niệm 10 năm thật khó quên."</div><div class="testi-author">Trần Thanh Hương <span style="color:var(--text-muted);font-weight:300">· TP.HCM</span></div></div>
+        <div class="testi-card"><div class="testi-stars">★★★★☆</div><div class="testi-text">"Phở bò hầm ở đây khác hẳn mọi nơi, nước dùng đậm đà. Không gian yên tĩnh, thích hợp tiếp đối tác."</div><div class="testi-author">Lê Hoàng Nam <span style="color:var(--text-muted);font-weight:300">· Đà Nẵng</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-section">
+    <div class="container">
+      <div class="section-tag" style="display:inline-block;margin-bottom:.75rem">✦ Sẵn sàng chưa</div>
+      <h2>Đặt bàn ngay hôm nay<br/>và nhận ưu đãi đặc biệt</h2>
+      <p>Đặt bàn trước 3 ngày nhận ngay voucher giảm 10% cho bàn từ 4 người trở lên.</p>
+      <button class="btn btn-primary" style="padding:.9rem 2.5rem;font-size:1rem" onclick="goBooking()">Đặt bàn ngay →</button>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <div class="footer-grid">
+        <div><div class="footer-brand">🍽 Hương Vị</div><p class="footer-desc">Nhà hàng cao cấp với hơn 12 năm kinh nghiệm, mang đến trải nghiệm ẩm thực tinh tế và không gian sang trọng giữa lòng Hà Nội.</p></div>
+        <div><div class="footer-heading">Liên hệ</div><ul class="footer-links"><li>📍 123 Hoàn Kiếm, Hà Nội</li><li>📞 (024) 3456 7890</li><li>✉️ info@huongvi.vn</li><li>🕐 10:00 – 22:00 hàng ngày</li></ul></div>
+        <div><div class="footer-heading">Điều hướng</div><ul class="footer-links"><li onclick="showPage('pageMenu')">Thực đơn</li><li onclick="goBooking()">Đặt bàn</li><li onclick="showPage('pageReview')">Đánh giá</li><li onclick="showPage('pageAuth')">Tài khoản</li></ul></div>
+      </div>
+      <div class="footer-bottom"><p>© 2025 Hương Vị Restaurant. Bảo lưu mọi quyền.</p><p>Được xây dựng bởi Nhóm sinh viên CNTT</p></div>
+    </div>
+  </footer>
+</div>
+
+<!-- ══ MENU ══ -->
+<div class="page" id="pageMenu">
+  <div class="container">
+    <div class="page-header"><h1>Thực đơn</h1><p>Khám phá hơn 50 món ăn đặc sắc từ bếp nhà hàng Hương Vị</p></div>
+    <div class="menu-filter">
+      <button class="filter-btn active" onclick="filterMenu('all',this)">Tất cả</button>
+      <button class="filter-btn" onclick="filterMenu('khai-vi',this)">Khai vị</button>
+      <button class="filter-btn" onclick="filterMenu('chinh',this)">Món chính</button>
+      <button class="filter-btn" onclick="filterMenu('hai-san',this)">Hải sản</button>
+      <button class="filter-btn" onclick="filterMenu('viet',this)">Đặc sản Việt</button>
+      <button class="filter-btn" onclick="filterMenu('trang-mieng',this)">Tráng miệng</button>
+      <button class="filter-btn" onclick="filterMenu('do-uong',this)">Đồ uống</button>
+    </div>
+    <div class="menu-full-grid" id="menuGrid"></div>
+    <div style="text-align:center;margin:2.5rem 0;padding:2rem;background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border)">
+      <div style="font-family:'Playfair Display',serif;font-size:1.3rem;margin-bottom:.5rem">Sẵn sàng thưởng thức?</div>
+      <div style="color:var(--text-muted);font-size:.9rem;margin-bottom:1.25rem">Đặt bàn ngay để có trải nghiệm ẩm thực tốt nhất</div>
+      <button class="btn btn-primary" style="padding:.8rem 2rem" onclick="goBooking()">Đặt bàn ngay →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ AUTH ══ -->
+<div class="page" id="pageAuth">
+  <div class="auth-wrap">
+    <div class="auth-logo">Hương Vị</div>
+    <div class="auth-sub">Đăng nhập để đặt bàn và theo dõi lịch sử</div>
+    <div class="card">
+      <div class="tab-switch">
+        <button class="active" onclick="switchAuth('login')">Đăng nhập</button>
+        <button onclick="switchAuth('register')">Đăng ký</button>
+      </div>
+      <div id="alertAuth"></div>
+      <div id="formLogin">
+        <div class="form-group"><label>Email</label><input type="email" id="loginEmail" placeholder="email@example.com"/></div>
+        <div class="form-group"><label>Mật khẩu</label><input type="password" id="loginPass" placeholder="••••••••"/></div>
+        <button class="btn btn-primary btn-full" onclick="doLogin()">Đăng nhập</button>
+        <hr class="divider" style="margin:1rem 0"/>
+        <div id="demoSection">
+          <div style="text-align:center;font-size:.78rem;color:var(--text-muted);margin-bottom:.6rem">— Xem demo không cần BE —</div>
+          <div class="demo-row">
+            <button class="btn btn-outline btn-full" onclick="demoLogin('user')">👤 Demo Khách</button>
+            <button class="btn btn-outline btn-full" onclick="demoLogin('admin')">🔧 Demo Admin</button>
+          </div>
+        </div>
+      </div>
+      <div id="formRegister" style="display:none">
+        <div class="form-group"><label>Họ tên</label><input type="text" id="regName" placeholder="Nguyễn Văn A"/></div>
+        <div class="form-group"><label>Email</label><input type="email" id="regEmail" placeholder="email@example.com"/></div>
+        <div class="form-group"><label>Số điện thoại</label><input type="tel" id="regPhone" placeholder="0901234567"/></div>
+        <div class="form-group"><label>Mật khẩu</label><input type="password" id="regPass" placeholder="••••••••"/></div>
+        <button class="btn btn-primary btn-full" onclick="doRegister()">Tạo tài khoản</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ BOOKING ══ -->
+<div class="page" id="pageBooking">
+  <div class="container">
+    <div class="page-header"><h1>Đặt bàn</h1><p>Chọn bàn và điền thông tin để hoàn tất đặt chỗ</p></div>
+    <div id="alertBooking"></div>
+    <div class="booking-layout">
+      <div>
+        <h2>Sơ đồ bàn</h2>
+        <div class="table-legend">
+          <span><span class="legend-dot" style="background:var(--green)"></span>Trống</span>
+          <span><span class="legend-dot" style="background:var(--red)"></span>Có khách</span>
+          <span><span class="legend-dot" style="background:var(--gold)"></span>Đang chọn</span>
+        </div>
+        <div class="table-grid" id="tableGrid"><div style="color:var(--text-muted);font-size:.85rem">Đang tải...</div></div>
+        <div id="selectedTableInfo" style="display:none;margin-top:.75rem;padding:.75rem 1rem;background:var(--gold-dim);border:1px solid rgba(201,168,76,.3);border-radius:8px;font-size:.85rem;color:var(--gold)"></div>
+      </div>
+      <div class="card" style="margin-bottom:0">
+        <h2>Thông tin đặt bàn</h2>
+        <div class="grid-2">
+          <div class="form-group"><label>Họ tên *</label><input type="text" id="resName" placeholder="Nguyễn Văn A"/></div>
+          <div class="form-group"><label>Số điện thoại *</label><input type="tel" id="resPhone" placeholder="0901234567"/></div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group"><label>Ngày & Giờ *</label><input type="datetime-local" id="resDatetime"/></div>
+          <div class="form-group"><label>Số khách *</label><input type="number" id="resGuests" min="1" max="20" placeholder="2"/></div>
+        </div>
+        <div class="form-group"><label>Email xác nhận</label><input type="email" id="resEmail" placeholder="email@example.com"/></div>
+        <div class="form-group"><label>Ghi chú</label><textarea id="resNote" placeholder="Dị ứng thực phẩm, yêu cầu đặc biệt, dịp kỷ niệm..."></textarea></div>
+        <button class="btn btn-primary btn-full" style="padding:.75rem" onclick="submitReservation()">✓ Xác nhận đặt bàn</button>
+        <p style="text-align:center;font-size:.78rem;color:var(--text-muted);margin-top:.75rem">Chúng tôi sẽ liên hệ xác nhận trong vòng 30 phút</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ HISTORY ══ -->
+<div class="page" id="pageHistory">
+  <div class="container">
+    <div class="page-header"><h1>Lịch sử đặt bàn</h1><p>Theo dõi và quản lý các lần đặt bàn của bạn</p></div>
+    <div id="historyList"><div class="empty"><div class="empty-icon">📋</div>Đang tải...</div></div>
+  </div>
+</div>
+
+<!-- ══ REVIEW ══ -->
+<div class="page" id="pageReview">
+  <div class="container">
+    <div class="page-header"><h1>Đánh giá</h1><p>Chia sẻ trải nghiệm của bạn với chúng tôi</p></div>
+    <div class="grid-2" style="align-items:start">
+      <div class="card">
+        <h2>Viết đánh giá</h2>
+        <div id="alertReview"></div>
+        <div class="form-group"><label>Chọn lần đặt bàn</label><select id="reviewReservation"><option value="">-- Chọn lần đặt bàn --</option></select></div>
+        <div class="form-group">
+          <label>Đánh giá sao</label>
+          <div class="stars-input" id="starRow">
+            <span class="star" data-v="1">★</span><span class="star" data-v="2">★</span>
+            <span class="star" data-v="3">★</span><span class="star" data-v="4">★</span>
+            <span class="star" data-v="5">★</span>
+          </div>
+          <div id="ratingLabel" style="font-size:.8rem;color:var(--text-muted)">Chưa chọn</div>
+        </div>
+        <div class="form-group"><label>Nhận xét</label><textarea id="reviewComment" placeholder="Chia sẻ cảm nhận về món ăn, không gian, phục vụ..."></textarea></div>
+        <button class="btn btn-primary btn-full" onclick="submitReview()">Gửi đánh giá</button>
+      </div>
+      <div>
+        <h2>Đánh giá gần đây</h2>
+        <div id="reviewList"><div class="empty"><div class="empty-icon">💬</div>Chưa có đánh giá</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ADMIN ══ -->
+<div class="page" id="pageAdmin">
+  <div class="container">
+    <div class="page-header"><h1>Quản lý</h1><p>Dashboard quản trị nhà hàng Hương Vị</p></div>
+    <div class="admin-stats">
+      <div class="stat-card"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Tổng đặt bàn</div></div>
+      <div class="stat-card"><div class="stat-num" id="statPending">0</div><div class="stat-label">Chờ xác nhận</div></div>
+      <div class="stat-card"><div class="stat-num" id="statConfirmed">0</div><div class="stat-label">Đã xác nhận</div></div>
+      <div class="stat-card"><div class="stat-num" id="statCancelled">0</div><div class="stat-label">Đã huỷ</div></div>
+    </div>
+    <div class="admin-tabs">
+      <button class="admin-tab active" onclick="switchAdminTab('reservations',this)">Đặt bàn</button>
+      <button class="admin-tab" onclick="switchAdminTab('tables',this)">Quản lý bàn</button>
+      <button class="admin-tab" onclick="switchAdminTab('reviews',this)">Đánh giá</button>
+    </div>
+    <div id="adminReservations"></div>
+    <div id="adminTables" style="display:none"></div>
+    <div id="adminReviews" style="display:none"></div>
+  </div>
+</div>
+
+<script>
+const API='/api';
+let currentUser=null,selectedTable=null,selectedRating=0;
+
+// ── MOCK DATA ──
+const MENU_DATA=[
+  {id:1,cat:'khai-vi',icon:'🥗',name:'Salad cá hồi hun khói',desc:'Cá hồi Na Uy hun khói với rau rocket, cà chua bi và sốt mù tạt mật ong.',price:'180.000đ',hot:true},
+  {id:2,cat:'khai-vi',icon:'🦑',name:'Mực nướng sa tế',desc:'Mực tươi nướng than hoa với sa tế đặc biệt, ăn kèm rau thơm và chanh.',price:'220.000đ'},
+  {id:3,cat:'khai-vi',icon:'🥟',name:'Há cảo tôm hấp',desc:'Há cảo nhân tôm tươi hấp, chấm với sốt gừng và tương đen đặc biệt.',price:'160.000đ'},
+  {id:4,cat:'chinh',icon:'🥩',name:'Bít tết bò Wagyu A5',desc:'Bò Wagyu A5 áp chảo với sốt truffle đen, khoai tây nghiền và măng tây.',price:'850.000đ',hot:true},
+  {id:5,cat:'chinh',icon:'🍗',name:'Gà nướng thảo mộc',desc:'Gà ta nướng lò với hỗn hợp thảo mộc Địa Trung Hải, khoai tây baby.',price:'320.000đ'},
+  {id:6,cat:'chinh',icon:'🐷',name:'Sườn heo BBQ Iberico',desc:'Sườn heo Iberico nướng BBQ 6 tiếng với sốt đặc biệt của nhà hàng.',price:'450.000đ'},
+  {id:7,cat:'hai-san',icon:'🦞',name:'Tôm hùm nướng phô mai',desc:'Tôm hùm Canada tươi sống nướng với sốt bơ chanh và phô mai Parmesan.',price:'1.200.000đ',hot:true},
+  {id:8,cat:'hai-san',icon:'🐟',name:'Cá hồi nướng giấy bạc',desc:'Cá hồi Atlantic phi lê nướng giấy bạc với bơ chanh, cải bó xôi và cà rốt.',price:'380.000đ'},
+  {id:9,cat:'hai-san',icon:'🦀',name:'Cua hoàng đế hấp bia',desc:'Cua hoàng đế Alaska hấp bia với gừng, sả, ăn kèm bơ chanh thơm lừng.',price:'980.000đ'},
+  {id:10,cat:'viet',icon:'🍜',name:'Phở bò hầm 12 tiếng',desc:'Nước dùng hầm xương bò 12 tiếng, thịt bò tái chín, rau thơm đặc biệt.',price:'220.000đ',hot:true},
+  {id:11,cat:'viet',icon:'🍲',name:'Bún bò Huế đặc biệt',desc:'Nấu theo công thức truyền thống với chả cua, giò heo, mắm ruốc Huế.',price:'185.000đ'},
+  {id:12,cat:'viet',icon:'🥘',name:'Lẩu hải sản thập cẩm',desc:'Lẩu hải sản với tôm, mực, cua, nghêu, nấm và các loại rau tươi.',price:'680.000đ'},
+  {id:13,cat:'trang-mieng',icon:'🍮',name:'Crème brûlée vani Madagascar',desc:'Bánh flan Pháp với vani Madagascar, caramel cháy giòn tan trên mặt.',price:'120.000đ'},
+  {id:14,cat:'trang-mieng',icon:'🍰',name:'Mousse chocolate Valrhona',desc:'Mousse chocolate 70% với mirror glaze và dâu tây tươi theo mùa.',price:'145.000đ'},
+  {id:15,cat:'trang-mieng',icon:'🧁',name:'Chè xoài dừa lá dứa',desc:'Chè xoài Thái thơm ngon với nước cốt dừa béo ngậy và thạch lá dứa.',price:'85.000đ'},
+  {id:16,cat:'do-uong',icon:'🍷',name:'Rượu vang đỏ Bordeaux',desc:'Château Larose Trintaudon 2018 AOC, thích hợp với thịt đỏ và phô mai.',price:'450.000đ'},
+  {id:17,cat:'do-uong',icon:'🍹',name:'Cocktail signature Hương Vị',desc:'Cocktail đặc trưng của nhà hàng pha chế từ hoa quả nhiệt đới tươi.',price:'120.000đ'},
+  {id:18,cat:'do-uong',icon:'☕',name:'Cà phê Arabica Đà Lạt',desc:'Arabica rang mộc từ cao nguyên Đà Lạt, pha pour-over thủ công.',price:'75.000đ'},
+];
+const CAT_LABEL={'khai-vi':'Khai vị',chinh:'Món chính','hai-san':'Hải sản',viet:'Đặc sản Việt','trang-mieng':'Tráng miệng','do-uong':'Đồ uống'};
+const MOCK_TABLES=[
+  {id:1,name:'Bàn 01',capacity:2,status:'AVAILABLE'},{id:2,name:'Bàn 02',capacity:2,status:'AVAILABLE'},
+  {id:3,name:'Bàn 03',capacity:4,status:'OCCUPIED'},{id:4,name:'Bàn 04',capacity:4,status:'AVAILABLE'},
+  {id:5,name:'Bàn 05',capacity:4,status:'AVAILABLE'},{id:6,name:'Bàn 06',capacity:6,status:'OCCUPIED'},
+  {id:7,name:'Bàn 07',capacity:6,status:'AVAILABLE'},{id:8,name:'Bàn VIP 1',capacity:8,status:'AVAILABLE'},
+  {id:9,name:'Bàn VIP 2',capacity:10,status:'AVAILABLE'},{id:10,name:'Sân vườn',capacity:12,status:'AVAILABLE'},
+];
+const MOCK_RES=[
+  {id:1,customerName:'Nguyễn Văn A',phone:'0901234567',reservationTime:'2025-06-15T19:00',numberOfPeople:4,status:'CONFIRMED',note:'Sinh nhật vợ'},
+  {id:2,customerName:'Trần Thị B',phone:'0912345678',reservationTime:'2025-06-16T12:00',numberOfPeople:2,status:'PENDING',note:''},
+  {id:3,customerName:'Lê Minh C',phone:'0923456789',reservationTime:'2025-06-14T18:30',numberOfPeople:6,status:'CANCELLED',note:'Họp công ty'},
+];
+const MOCK_REVIEWS=[
+  {id:1,userName:'Nguyễn Minh Anh',rating:5,comment:'Không gian tuyệt vời, đồ ăn ngon xuất sắc. Bít tết Wagyu là món tôi ăn ngon nhất từ trước đến nay!',createdAt:'2025-06-10T10:00'},
+  {id:2,userName:'Trần Thanh Hương',rating:5,comment:'Đặt bàn online rất tiện lợi, nhân viên phục vụ chu đáo. Bữa tối kỷ niệm thật khó quên.',createdAt:'2025-06-08T15:30'},
+  {id:3,userName:'Lê Hoàng Nam',rating:4,comment:'Phở bò hầm ở đây rất ngon, nước dùng đậm đà. Không gian thích hợp tiếp đối tác.',createdAt:'2025-06-05T12:00'},
+];
+
+// ── UTILS ──
+function fmt(dt){if(!dt)return'—';return new Date(dt).toLocaleString('vi-VN',{dateStyle:'short',timeStyle:'short'})}
+function badgeHtml(s){const m={PENDING:'pending',CONFIRMED:'confirmed',CANCELLED:'cancelled'};const l={PENDING:'Chờ xác nhận',CONFIRMED:'Đã xác nhận',CANCELLED:'Đã huỷ'};return`<span class="badge badge-${m[s]||'pending'}">${l[s]||s}</span>`}
+function showAlert(id,msg,type='success'){const el=document.getElementById(id);if(!el)return;el.innerHTML=`<div class="alert alert-${type}">${msg}</div>`;setTimeout(()=>{if(el)el.innerHTML=''},4000)}
+async function api(path,method='GET',body=null){
+  const token=localStorage.getItem('token');
+  const opts={method,headers:{'Content-Type':'application/json'}};
+  if(token)opts.headers['Authorization']='Bearer '+token;
+  if(body)opts.body=JSON.stringify(body);
+  const r=await fetch(API+path,opts);
+  if(!r.ok)throw new Error(await r.text());
+  return r.status===204?null:r.json();
+}
+
+// ── NAV ──
+function renderNav(){
+  const links=document.getElementById('navLinks');
+  const info=document.getElementById('userInfo');
+  const btnIn=document.getElementById('btnLogin');
+  const btnOut=document.getElementById('btnLogout');
+  if(!currentUser){
+    links.innerHTML='<button onclick="showPage(\'pageLanding\')">Trang chủ</button><button onclick="showPage(\'pageMenu\')">Thực đơn</button>';
+    info.textContent='';btnIn.style.display='inline-block';btnOut.style.display='none';return;
+  }
+  const isAdmin=currentUser.role==='ADMIN';
+  const pages=isAdmin
+    ?[['pageLanding','Trang chủ'],['pageMenu','Thực đơn'],['pageBooking','Đặt bàn'],['pageAdmin','Quản lý']]
+    :[['pageLanding','Trang chủ'],['pageMenu','Thực đơn'],['pageBooking','Đặt bàn'],['pageHistory','Lịch sử'],['pageReview','Đánh giá']];
+  links.innerHTML=pages.map(([p,l])=>`<button onclick="showPage('${p}')">${l}</button>`).join('');
+  info.textContent=currentUser.name||currentUser.email;
+  btnIn.style.display='none';btnOut.style.display='inline-block';
+}
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const map={pageLanding:'Trang chủ',pageMenu:'Thực đơn',pageBooking:'Đặt bàn',pageHistory:'Lịch sử',pageReview:'Đánh giá',pageAdmin:'Quản lý'};
+  document.querySelectorAll('.nav-links button').forEach(b=>b.classList.toggle('active',b.textContent===map[id]));
+  window.scrollTo(0,0);
+  if(id==='pageMenu')renderMenu('all');
+  if(id==='pageBooking')loadTables();
+  if(id==='pageHistory')loadHistory();
+  if(id==='pageReview'){loadReviewSelects();loadReviews();}
+  if(id==='pageAdmin')loadAdmin();
+}
+function goBooking(){if(!currentUser){showPage('pageAuth');}else{showPage('pageBooking');}}
+
+// ── LOADING STATE ──
+function setLoading(elId, on){
+  const el=document.getElementById(elId);
+  if(!el)return;
+  if(on)el.innerHTML='<div class="empty"><div class="spinner"></div></div>';
+}
+
+// ── MENU ──
+let allMenuData=[];
+async function loadMenuData(){
+  try{
+    const data=await api('/menu');
+    allMenuData=data.map(m=>({...m,icon:m.icon||'🍽',hot:m.popular||false}));
+  }catch(e){
+    allMenuData=MENU_DATA; // fallback mock
+  }
+}
+function renderMenu(cat){
+  const items=cat==='all'?allMenuData:allMenuData.filter(m=>m.cat===cat);
+  if(!items.length){document.getElementById('menuGrid').innerHTML='<div class="empty"><div class="empty-icon">🍽</div>Không có món nào</div>';return;}
+  document.getElementById('menuGrid').innerHTML=items.map(m=>`
+    <div class="menu-full-card">
+      <div class="mf-img">${m.icon}</div>
+      <div class="mf-body">
+        <div class="mf-cat">${CAT_LABEL[m.cat]||m.cat}</div>
+        <div class="mf-name">${m.name}</div>
+        <div class="mf-desc">${m.desc}</div>
+        <div class="mf-footer">
+          <div class="mf-price">${m.price}</div>
+          ${m.hot?'<span class="mf-hot">🔥 Phổ biến</span>':''}
+        </div>
+      </div>
+    </div>`).join('');
+}
+function filterMenu(cat,btn){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');renderMenu(cat);
+}
+
+// ── AUTH ──
+function switchAuth(tab){
+  document.getElementById('formLogin').style.display=tab==='login'?'block':'none';
+  document.getElementById('formRegister').style.display=tab==='register'?'block':'none';
+  document.querySelectorAll('.tab-switch button').forEach((b,i)=>b.classList.toggle('active',(tab==='login'&&i===0)||(tab==='register'&&i===1)));
+}
+async function doLogin(){
+  const btn=event.target;btn.disabled=true;btn.textContent='Đang đăng nhập...';
+  try{
+    const r=await api('/auth/login','POST',{email:document.getElementById('loginEmail').value,password:document.getElementById('loginPass').value});
+    localStorage.setItem('token',r.token);
+    currentUser=r.user||{email:document.getElementById('loginEmail').value,role:r.role||'USER',name:r.name||''};
+    localStorage.setItem('currentUser',JSON.stringify(currentUser));
+    renderNav();showPage('pageLanding');
+  }catch(e){
+    showAlert('alertAuth','Email hoặc mật khẩu không đúng','error');
+    btn.disabled=false;btn.textContent='Đăng nhập';
+  }
+}
+async function doRegister(){
+  const name=document.getElementById('regName').value;
+  const email=document.getElementById('regEmail').value;
+  const phone=document.getElementById('regPhone').value;
+  const pass=document.getElementById('regPass').value;
+  if(!name||!email||!pass){showAlert('alertAuth','Vui lòng điền đầy đủ thông tin','error');return;}
+  if(pass.length<6){showAlert('alertAuth','Mật khẩu tối thiểu 6 ký tự','error');return;}
+  const btn=event.target;btn.disabled=true;btn.textContent='Đang tạo tài khoản...';
+  try{
+    await api('/auth/register','POST',{name,email,phone,password:pass});
+    showAlert('alertAuth','Đăng ký thành công! Vui lòng đăng nhập','success');
+    switchAuth('login');
+  }catch(e){showAlert('alertAuth','Đăng ký thất bại: '+e.message,'error');}
+  btn.disabled=false;btn.textContent='Tạo tài khoản';
+}
+// Demo login - chỉ hiện khi KHÔNG kết nối được BE
+let _beAvailable=null;
+async function checkBE(){
+  try{await fetch(API+'/health',{signal:AbortSignal.timeout(1500)});_beAvailable=true;}
+  catch(e){_beAvailable=false;}
+  const demoSection=document.getElementById('demoSection');
+  if(demoSection)demoSection.style.display=_beAvailable?'none':'block';
+}
+function demoLogin(role){
+  currentUser=role==='admin'?{name:'Admin Demo',email:'admin@restaurant.com',role:'ADMIN'}:{name:'Khách hàng Demo',email:'demo@gmail.com',role:'USER'};
+  localStorage.setItem('currentUser',JSON.stringify(currentUser));
+  renderNav();showPage('pageLanding');
+}
+function logout(){
+  clearInterval(window._poll);
+  localStorage.removeItem('token');localStorage.removeItem('currentUser');
+  currentUser=null;renderNav();showPage('pageLanding');
+}
+
+// ── TABLES ──
+let _pollActive=false;
+async function loadTables(){
+  const grid=document.getElementById('tableGrid');
+  if(!grid)return;
+  // Chỉ show loading lần đầu
+  if(grid.children.length<=1)grid.innerHTML='<div class="empty"><div class="spinner"></div></div>';
+  let tables;
+  try{tables=await api('/tables');}catch(e){tables=MOCK_TABLES;}
+  // Giữ lại bàn đang chọn
+  const prevSelected=selectedTable;
+  grid.innerHTML=tables.map(t=>`
+    <div class="table-item ${t.status==='OCCUPIED'?'occupied':''} ${prevSelected===t.id&&t.status!=='OCCUPIED'?'selected':''}"
+         onclick="selectTable(${t.id},'${t.status}','${t.name}',${t.capacity})" id="tbl-${t.id}">
+      <div class="table-icon">${t.status==='OCCUPIED'?'🔴':'🟢'}</div>
+      <div class="table-name">${t.name}</div>
+      <div class="table-cap">${t.capacity} khách</div>
+    </div>`).join('');
+  // Polling: chỉ chạy khi đang ở trang booking
+  if(!_pollActive){
+    _pollActive=true;
+    window._poll=setInterval(()=>{
+      if(document.getElementById('pageBooking').classList.contains('active')){
+        loadTables();
+      } else {
+        clearInterval(window._poll);_pollActive=false;
+      }
+    },5000);
+  }
+}
+function selectTable(id,status,name,cap){
+  if(status==='OCCUPIED')return;
+  selectedTable=id;
+  document.querySelectorAll('.table-item').forEach(el=>el.classList.remove('selected'));
+  const el=document.getElementById('tbl-'+id);if(el)el.classList.add('selected');
+  const info=document.getElementById('selectedTableInfo');
+  info.style.display='block';info.textContent=`✓ Đã chọn: ${name} (tối đa ${cap} khách)`;
+}
+
+// ── RESERVATION ──
+async function submitReservation(){
+  if(!selectedTable){showAlert('alertBooking','Vui lòng chọn bàn trước','error');return;}
+  const name=document.getElementById('resName').value.trim();
+  const phone=document.getElementById('resPhone').value.trim();
+  const datetime=document.getElementById('resDatetime').value;
+  const guests=parseInt(document.getElementById('resGuests').value)||1;
+  const email=document.getElementById('resEmail').value.trim();
+  const note=document.getElementById('resNote').value.trim();
+  // Validate
+  if(!name||!phone||!datetime){showAlert('alertBooking','Vui lòng điền đầy đủ thông tin bắt buộc (*)','error');return;}
+  if(phone.length<9){showAlert('alertBooking','Số điện thoại không hợp lệ','error');return;}
+  if(new Date(datetime)<new Date()){showAlert('alertBooking','Vui lòng chọn thời gian trong tương lai','error');return;}
+  if(guests<1||guests>20){showAlert('alertBooking','Số khách phải từ 1 đến 20','error');return;}
+  const btn=document.querySelector('#pageBooking .btn-primary');
+  btn.disabled=true;btn.textContent='Đang gửi...';
+  try{
+    await api('/reservations','POST',{tableId:selectedTable,customerName:name,phone,reservationTime:datetime,numberOfPeople:guests,email,note});
+  }catch(e){} // mock success nếu chưa có BE
+  showAlert('alertBooking','🎉 Đặt bàn thành công! Chúng tôi sẽ liên hệ xác nhận trong 30 phút.','success');
+  selectedTable=null;
+  document.getElementById('selectedTableInfo').style.display='none';
+  document.querySelectorAll('.table-item').forEach(el=>el.classList.remove('selected'));
+  ['resName','resPhone','resDatetime','resGuests','resEmail','resNote'].forEach(id=>document.getElementById(id).value='');
+  btn.disabled=false;btn.textContent='✓ Xác nhận đặt bàn';
+  loadTables();
+}
+
+// ── HISTORY ──
+async function loadHistory(){
+  const el=document.getElementById('historyList');
+  setLoading('historyList',true);
+  let list;
+  try{list=await api('/reservations/my');}catch(e){list=MOCK_RES;}
+  if(!list.length){
+    el.innerHTML='<div class="empty"><div class="empty-icon">📋</div>Bạn chưa có đặt bàn nào<br/><br/><button class="btn btn-primary" onclick="showPage(\'pageBooking\')">Đặt bàn ngay</button></div>';return;
+  }
+  el.innerHTML=list.map(r=>`
+    <div class="card">
+      <div class="res-item">
+        <div class="res-info">
+          <h3 style="font-family:inherit">${r.customerName} &nbsp;${badgeHtml(r.status)}</h3>
+          <p>🗓 ${fmt(r.reservationTime)} &nbsp;·&nbsp; 👥 ${r.numberOfPeople} khách &nbsp;·&nbsp; 📞 ${r.phone||'—'}</p>
+          ${r.note?`<p style="margin-top:.3rem">📝 ${r.note}</p>`:''}
+        </div>
+        <div class="res-actions">
+          ${r.status==='PENDING'?`<button class="btn-danger" onclick="cancelRes(${r.id})">Huỷ</button>`:''}
+          ${r.status==='CONFIRMED'?`<button class="btn btn-outline btn-sm" onclick="showPage('pageReview')">⭐ Đánh giá</button>`:''}
+        </div>
+      </div>
+    </div>`).join('');
+}
+async function cancelRes(id){
+  if(!confirm('Xác nhận huỷ đặt bàn này?'))return;
+  try{await api('/reservations/'+id+'/cancel','PUT');}catch(e){}
+  loadHistory();
+}
+
+// ── REVIEW ──
+const ratingLabels=['','Rất tệ 😞','Tệ 😕','Bình thường 😐','Tốt 😊','Xuất sắc 🤩'];
+document.addEventListener('DOMContentLoaded',()=>{
+  document.querySelectorAll('.star').forEach(s=>{
+    s.addEventListener('click',()=>{
+      selectedRating=parseInt(s.dataset.v);
+      document.querySelectorAll('.star').forEach(st=>st.classList.toggle('active',parseInt(st.dataset.v)<=selectedRating));
+      document.getElementById('ratingLabel').textContent=ratingLabels[selectedRating]||'';
+    });
+  });
+  // Set min datetime cho form đặt bàn
+  const dtInput=document.getElementById('resDatetime');
+  if(dtInput){
+    const now=new Date();now.setHours(now.getHours()+1);
+    dtInput.min=now.toISOString().slice(0,16);
+  }
+  checkBE();
+});
+async function loadReviewSelects(){
+  try{
+    const list=await api('/reservations/my');
+    const sel=document.getElementById('reviewReservation');
+    const confirmed=list.filter(r=>r.status==='CONFIRMED');
+    sel.innerHTML='<option value="">-- Chọn lần đặt bàn --</option>'+confirmed.map(r=>`<option value="${r.id}">${fmt(r.reservationTime)} — ${r.customerName}</option>`).join('');
+    if(!confirmed.length)sel.innerHTML+='<option disabled>Chưa có lần đặt bàn được xác nhận</option>';
+  }catch(e){document.getElementById('reviewReservation').innerHTML='<option value="">-- Chọn lần đặt bàn (demo) --</option>';}
+}
+async function submitReview(){
+  if(!selectedRating){showAlert('alertReview','Vui lòng chọn số sao','error');return;}
+  const comment=document.getElementById('reviewComment').value.trim();
+  if(!comment){showAlert('alertReview','Vui lòng viết nhận xét','error');return;}
+  const btn=event.target;btn.disabled=true;btn.textContent='Đang gửi...';
+  const body={reservationId:document.getElementById('reviewReservation').value||null,rating:selectedRating,comment};
+  try{await api('/reviews','POST',body);}catch(e){}
+  showAlert('alertReview','Cảm ơn đánh giá của bạn! 🙏','success');
+  document.getElementById('reviewComment').value='';
+  selectedRating=0;
+  document.querySelectorAll('.star').forEach(s=>s.classList.remove('active'));
+  document.getElementById('ratingLabel').textContent='Chưa chọn';
+  btn.disabled=false;btn.textContent='Gửi đánh giá';
+  loadReviews();
+}
+async function loadReviews(){
+  const el=document.getElementById('reviewList');
+  setLoading('reviewList',true);
+  let list;try{list=await api('/reviews');}catch(e){list=MOCK_REVIEWS;}
+  if(!list.length){el.innerHTML='<div class="empty"><div class="empty-icon">💬</div>Chưa có đánh giá</div>';return;}
+  el.innerHTML=list.map(r=>`
+    <div class="review-card">
+      <div class="review-header"><div class="review-author">${r.userName||'Khách hàng'}</div><div class="review-date">${fmt(r.createdAt)}</div></div>
+      <div class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
+      <div class="review-text">${r.comment||''}</div>
+    </div>`).join('');
+}
+
+// ── ADMIN ──
+async function loadAdmin(){
+  setLoading('adminReservations',true);
+  let list;try{list=await api('/reservations');}catch(e){list=MOCK_RES;}
+  document.getElementById('statTotal').textContent=list.length;
+  document.getElementById('statPending').textContent=list.filter(r=>r.status==='PENDING').length;
+  document.getElementById('statConfirmed').textContent=list.filter(r=>r.status==='CONFIRMED').length;
+  document.getElementById('statCancelled').textContent=list.filter(r=>r.status==='CANCELLED').length;
+  renderAdminRes(list);
+}
+function switchAdminTab(tab,btn){
+  document.querySelectorAll('.admin-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  ['adminReservations','adminTables','adminReviews'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('admin'+tab.charAt(0).toUpperCase()+tab.slice(1)).style.display='block';
+  if(tab==='reservations')renderAdminRes();
+  if(tab==='tables')renderAdminTables();
+  if(tab==='reviews')renderAdminReviews();
+}
+async function renderAdminRes(list){
+  const el=document.getElementById('adminReservations');
+  if(!list){setLoading('adminReservations',true);try{list=await api('/reservations');}catch(e){list=MOCK_RES;}}
+  if(!list.length){el.innerHTML='<div class="empty"><div class="empty-icon">📋</div>Chưa có đặt bàn</div>';return;}
+  el.innerHTML=list.map(r=>`
+    <div class="card">
+      <div class="res-item">
+        <div class="res-info">
+          <h3 style="font-family:inherit">${r.customerName} &nbsp;${badgeHtml(r.status)}</h3>
+          <p>🗓 ${fmt(r.reservationTime)} &nbsp;·&nbsp; 👥 ${r.numberOfPeople} khách &nbsp;·&nbsp; 📞 ${r.phone||'—'}</p>
+          ${r.note?`<p style="margin-top:.3rem">📝 ${r.note}</p>`:''}
+        </div>
+        <div class="res-actions">
+          ${r.status==='PENDING'?`<button class="btn btn-outline btn-sm" onclick="updateStatus(${r.id},'CONFIRMED')">✓ Xác nhận</button>`:''}
+          ${r.status!=='CANCELLED'?`<button class="btn-danger" onclick="updateStatus(${r.id},'CANCELLED')">Huỷ</button>`:''}
+        </div>
+      </div>
+    </div>`).join('');
+}
+async function renderAdminTables(){
+  const el=document.getElementById('adminTables');setLoading('adminTables',true);
+  let tables;try{tables=await api('/tables');}catch(e){tables=MOCK_TABLES;}
+  el.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:1rem">'+
+    tables.map(t=>`<div class="card" style="text-align:center;margin-bottom:0">
+      <div style="font-size:2rem;margin-bottom:.5rem">${t.status==='OCCUPIED'?'🔴':'🟢'}</div>
+      <div style="font-weight:500;margin-bottom:.25rem">${t.name}</div>
+      <div style="font-size:.8rem;color:var(--text-muted);margin-bottom:.75rem">${t.capacity} khách · ${t.status==='OCCUPIED'?'Có khách':'Trống'}</div>
+      <div style="display:flex;gap:.4rem;justify-content:center">
+        <button class="btn btn-outline btn-sm" onclick="setTableStatus(${t.id},'AVAILABLE')">Trống</button>
+        <button class="btn btn-outline btn-sm" onclick="setTableStatus(${t.id},'OCCUPIED')">Có khách</button>
+      </div></div>`).join('')+'</div>';
+}
+async function renderAdminReviews(){
+  const el=document.getElementById('adminReviews');setLoading('adminReviews',true);
+  let list;try{list=await api('/reviews');}catch(e){list=MOCK_REVIEWS;}
+  if(!list.length){el.innerHTML='<div class="empty"><div class="empty-icon">💬</div>Chưa có đánh giá</div>';return;}
+  el.innerHTML=list.map(r=>`
+    <div class="review-card">
+      <div class="review-header"><div class="review-author">${r.userName||'Khách hàng'}</div><div class="review-date">${fmt(r.createdAt)}</div></div>
+      <div class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
+      <div class="review-text">${r.comment||''}</div>
+    </div>`).join('');
+}
+async function updateStatus(id,status){try{await api('/reservations/'+id+'/status','PUT',{status});}catch(e){}loadAdmin();}
+async function setTableStatus(id,status){try{await api('/tables/'+id+'/status','PUT',{status});}catch(e){}renderAdminTables();}
+
+// ── INIT ──
+loadMenuData().then(()=>renderMenu('all'));
+const _saved=localStorage.getItem('currentUser');
+if(_saved){currentUser=JSON.parse(_saved);}
+renderNav();
+</script>
+</body>
+</html>
