@@ -692,7 +692,7 @@ async function loadHistory(){
   const el=document.getElementById('historyList');
   setLoading('historyList',true);
   let list;
-  try{list=await api('/reservations/my');}catch(e){list=MOCK_RES;}
+  try{const uid=currentUser?currentUser.id:null;list=await api('/reservations/my'+(uid?'?userId='+uid:''));}catch(e){list=MOCK_RES;}
   if(!list.length){
     el.innerHTML='<div class="empty"><div class="empty-icon">📋</div>Bạn chưa có đặt bàn nào<br/><br/><button class="btn btn-primary" onclick="showPage(\'pageBooking\')">Đặt bàn ngay</button></div>';return;
   }
@@ -737,7 +737,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 async function loadReviewSelects(){
   try{
-    const list=await api('/reservations/my');
+    const uid=currentUser?currentUser.id:null;const list=await api('/reservations/my'+(uid?'?userId='+uid:''));
     const sel=document.getElementById('reviewReservation');
     const confirmed=list.filter(r=>r.status==='CONFIRMED');
     sel.innerHTML='<option value="">-- Chọn lần đặt bàn --</option>'+confirmed.map(r=>`<option value="${r.id}">${fmt(r.reservationTime)} — ${r.customerName}</option>`).join('');

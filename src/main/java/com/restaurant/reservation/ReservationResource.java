@@ -1,9 +1,12 @@
 package com.restaurant.reservation;
 
+import com.restaurant.auth.User;
 import com.restaurant.table.RestaurantTable;
+import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.*;
+import org.eclipse.microprofile.jwt.JsonWebToken;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +15,9 @@ import java.util.Map;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ReservationResource {
+
+    @Inject
+    JsonWebToken jwt;
 
     // Lấy tất cả (admin)
     @GET
@@ -23,7 +29,7 @@ public class ReservationResource {
     @GET
     @Path("/my")
     public List<Reservation> getMy(@QueryParam("userId") Long userId) {
-        if (userId == null) return List.of();
+        if (userId == null) return Reservation.listAll();
         return Reservation.findByUserId(userId);
     }
 
@@ -31,48 +37,49 @@ public class ReservationResource {
     @POST
     @Transactional
     public Response create(ReservationRequest req) {
-        // Validate
         if (req.customerName == null || req.phone == null || req.reservationTime == null) {
             return Response.status(400)
                     .entity(Map.of("message", "Vui long dien day du thong tin"))
                     .build();
         }
-
-        // Không cho đặt trong quá khứ
         if (req.reservationTime.isBefore(LocalDateTime.now())) {
             return Response.status(400)
                     .entity(Map.of("message", "Thoi gian dat ban khong hop le"))
                     .build();
         }
 
-        // Kiểm tra bàn tồn tại
         RestaurantTable table = RestaurantTable.findById(req.tableId);
         if (table == null) {
             return Response.status(404)
                     .entity(Map.of("message", "Khong tim thay ban"))
                     .build();
         }
-
-        // Kiểm tra bàn còn trống không
         if ("OCCUPIED".equals(table.status)) {
             return Response.status(400)
                     .entity(Map.of("message", "Ban nay da co nguoi"))
                     .build();
         }
 
-        // Tạo reservation
         Reservation reservation = new Reservation();
-        reservation.table          = table;
-        reservation.customerName   = req.customerName;
-        reservation.phone          = req.phone;
-        reservation.email          = req.email;
+        reservation.table           = table;
+        reservation.customerName    = req.customerName;
+        reservation.phone           = req.phone;
+        reservation.email           = req.email;
         reservation.reservationTime = req.reservationTime;
-        reservation.numberOfPeople = req.numberOfPeople;
-        reservation.note           = req.note;
-        reservation.status         = "PENDING";
-        reservation.persist();
+        reservation.numberOfPeople  = req.numberOfPeople;
+        reservation.note            = req.note;
+        reservation.status          = "PENDING";
 
-        // Cập nhật trạng thái bàn
+        // Tự động gán user từ JWT token
+        try {
+            String subject = jwt.getSubject();
+            if (subject != null) {
+                User user = User.findById(Long.parseLong(subject));
+                reservation.user = user;
+            }
+        } catch (Exception ignored) {}
+
+        reservation.persist();
         table.status = "OCCUPIED";
 
         return Response.ok(reservation).status(201).build();
@@ -90,12 +97,9 @@ public class ReservationResource {
                     .build();
         }
         reservation.status = req.status;
-
-        // Nếu huỷ thì trả bàn về AVAILABLE
         if ("CANCELLED".equals(req.status) && reservation.table != null) {
             reservation.table.status = "AVAILABLE";
         }
-
         return Response.ok(reservation).build();
     }
 
