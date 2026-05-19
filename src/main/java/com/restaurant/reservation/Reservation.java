@@ -11,11 +11,11 @@ import java.util.List;
 @Table(name = "reservations")
 public class Reservation extends PanacheEntity {
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "table_id")
     public RestaurantTable table;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id")
     public User user;
 
@@ -42,11 +42,21 @@ public class Reservation extends PanacheEntity {
 
     // Lấy reservation theo user
     public static List<Reservation> findByUserId(Long userId) {
-        return list("user.id", userId);
+
+        return list("user.id = ?1 ORDER BY createdAt DESC", userId);
     }
 
     // Lấy tất cả theo trạng thái
     public static List<Reservation> findByStatus(String status) {
         return list("status", status);
+    }
+
+    public static boolean hasConflict(Long tableId, LocalDateTime time) {
+        LocalDateTime from = time.minusHours(2);
+        LocalDateTime to   = time.plusHours(2);
+        return count(
+                "table.id = ?1 AND status != 'CANCELLED' AND reservationTime BETWEEN ?2 AND ?3",
+                tableId, from, to
+        ) > 0;
     }
 }
