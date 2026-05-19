@@ -7,93 +7,110 @@ import jakarta.ws.rs.core.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import com.restaurant.auth.User;
+import jakarta.annotation.security.RolesAllowed;
+import jakarta.inject.Inject;
+import org.eclipse.microprofile.jwt.JsonWebToken;
+
+//@Inject
+//JsonWebToken jwt;
 
 @Path("/api/reservations")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+
 public class ReservationResource {
+    @Inject
+    JsonWebToken jwt;
 
     // Lấy tất cả (admin)
     @GET
-    public List<Reservation> getAll() {
-        return Reservation.listAll();
+    @RolesAllowed("ADMIN")
+    public Response getAll(@QueryParam("status") String status) {
+        List<Reservation> list = (status != null && !status.isBlank())
+                ? Reservation.findByStatus(status)
+                : Reservation.list("ORDER BY reservationTime DESC");
+        return Response.ok(list).build();
     }
-
-    // Lấy theo user hiện tại
-    @GET
-    @Path("/my")
-    public List<Reservation> getMy(@QueryParam("userId") Long userId) {
-        if (userId == null) return List.of();
-        return Reservation.findByUserId(userId);
-    }
-
     // Tạo đặt bàn mới
     @POST
     @Transactional
+    @RolesAllowed({"USER", "ADMIN"})
     public Response create(ReservationRequest req) {
-        // Validate
-        if (req.customerName == null || req.phone == null || req.reservationTime == null) {
-            return Response.status(400)
-                    .entity(Map.of("message", "Vui long dien day du thong tin"))
-                    .build();
-        }
+        if (req.customerName == null || req.customerName.isBlank())
+            return Response.status(400).entity(Map.of("message", "Vui lòng nhập tên người đặt")).build();
+        if (req.phone == null || req.phone.isBlank())
+            return Response.status(400).entity(Map.of("message", "Vui lòng nhập số điện thoại")).build();
+        if (req.reservationTime == null || req.tableId == null)
+            return Response.status(400).entity(Map.of("message", "Vui lòng chọn thời gian và bàn")).build();
+        if (req.numberOfPeople <= 0)
+            return Response.status(400).entity(Map.of("message", "Số người phải lớn hơn 0")).build();
 
-        // Không cho đặt trong quá khứ
-        if (req.reservationTime.isBefore(LocalDateTime.now())) {
-            return Response.status(400)
-                    .entity(Map.of("message", "Thoi gian dat ban khong hop le"))
-                    .build();
-        }
+        // Phải đặt trước ít nhất 30 phút
+        if (req.reservationTime.isBefore(LocalDateTime.now().plusMinutes(30)))
+            return Response.status(400).entity(Map.of("message", "Thời gian đặt bàn phải trước ít nhất 30 phút")).build();
 
-        // Kiểm tra bàn tồn tại
         RestaurantTable table = RestaurantTable.findById(req.tableId);
-        if (table == null) {
-            return Response.status(404)
-                    .entity(Map.of("message", "Khong tim thay ban"))
-                    .build();
-        }
+        if (table == null)
+            return Response.status(404).entity(Map.of("message", "Không tìm thấy bàn")).build();
+        if ("OCCUPIED".equals(table.status))
+            return Response.status(400).entity(Map.of("message", "Bàn này hiện đang có người")).build();
 
-        // Kiểm tra bàn còn trống không
-        if ("OCCUPIED".equals(table.status)) {
-            return Response.status(400)
-                    .entity(Map.of("message", "Ban nay da co nguoi"))
-                    .build();
-        }
+        // Validate sức chứa
+        if (req.numberOfPeople > table.capacity)
+            return Response.status(400).entity(Map.of("message", "Bàn chỉ chứa tối đa " + table.capacity + " người")).build();
 
-        // Tạo reservation
+        // Validate xung đột thời gian ±2 giờ
+        if (Reservation.hasConflict(req.tableId, req.reservationTime))
+            return Response.status(400).entity(Map.of("message", "Bàn đã được đặt vào khung giờ gần đó (±2 giờ)")).build();
+
         Reservation reservation = new Reservation();
-        reservation.table          = table;
-        reservation.customerName   = req.customerName;
-        reservation.phone          = req.phone;
-        reservation.email          = req.email;
+        reservation.table           = table;
+        reservation.customerName    = req.customerName.trim();
+        reservation.phone           = req.phone.trim();
+        reservation.email           = req.email;
         reservation.reservationTime = req.reservationTime;
-        reservation.numberOfPeople = req.numberOfPeople;
-        reservation.note           = req.note;
-        reservation.status         = "PENDING";
+        reservation.numberOfPeople  = req.numberOfPeople;
+        reservation.note            = req.note;
+        reservation.status          = "PENDING";
+
+        // Gắn user từ JWT thay vì nhận từ client
+        String subject = jwt.getSubject();
+        if (subject != null) {
+            try { reservation.user = User.findById(Long.parseLong(subject)); }
+            catch (NumberFormatException ignored) {}
+        }
+
         reservation.persist();
-
-        // Cập nhật trạng thái bàn
         table.status = "OCCUPIED";
-
-        return Response.ok(reservation).status(201).build();
+        return Response.status(201).entity(reservation).build();
     }
 
     // Cập nhật trạng thái (admin)
     @PUT
     @Path("/{id}/status")
     @Transactional
+    @RolesAllowed("ADMIN")
     public Response updateStatus(@PathParam("id") Long id, StatusRequest req) {
+        if (req.status == null || (!req.status.equals("CONFIRMED") && !req.status.equals("CANCELLED") && !req.status.equals("PENDING")))
+            return Response.status(400).entity(Map.of("message", "Trạng thái không hợp lệ")).build();
+
         Reservation reservation = Reservation.findById(id);
-        if (reservation == null) {
-            return Response.status(404)
-                    .entity(Map.of("message", "Khong tim thay dat ban"))
-                    .build();
-        }
+        if (reservation == null)
+            return Response.status(404).entity(Map.of("message", "Không tìm thấy đặt bàn")).build();
+
         reservation.status = req.status;
 
-        // Nếu huỷ thì trả bàn về AVAILABLE
-        if ("CANCELLED".equals(req.status) && reservation.table != null) {
-            reservation.table.status = "AVAILABLE";
+        if (reservation.table != null) {
+            if ("CANCELLED".equals(req.status)) {
+                // Chỉ trả bàn nếu không còn đặt bàn active nào khác
+                long activeCount = Reservation.count(
+                        "table.id = ?1 AND status IN ('PENDING', 'CONFIRMED') AND id != ?2",
+                        reservation.table.id, id);
+                if (activeCount == 0) reservation.table.status = "AVAILABLE";
+            } else if ("CONFIRMED".equals(req.status)) {
+                reservation.table.status = "OCCUPIED";
+            }
         }
 
         return Response.ok(reservation).build();
@@ -103,23 +120,35 @@ public class ReservationResource {
     @PUT
     @Path("/{id}/cancel")
     @Transactional
+    @RolesAllowed({"USER", "ADMIN"})
     public Response cancel(@PathParam("id") Long id) {
         Reservation reservation = Reservation.findById(id);
-        if (reservation == null) {
-            return Response.status(404)
-                    .entity(Map.of("message", "Khong tim thay dat ban"))
-                    .build();
-        }
-        if ("CONFIRMED".equals(reservation.status)) {
-            return Response.status(400)
-                    .entity(Map.of("message", "Khong the huy dat ban da xac nhan"))
-                    .build();
-        }
+        if (reservation == null)
+            return Response.status(404).entity(Map.of("message", "Không tìm thấy đặt bàn")).build();
+
+        String subject = jwt.getSubject();
+        boolean isAdmin = jwt.getGroups().contains("ADMIN");
+
+        // Chỉ được huỷ đặt bàn của chính mình (trừ admin)
+        if (!isAdmin && (reservation.user == null || !String.valueOf(reservation.user.id).equals(subject)))
+            return Response.status(403).entity(Map.of("message", "Bạn không có quyền huỷ đặt bàn này")).build();
+
+        if ("CANCELLED".equals(reservation.status))
+            return Response.status(400).entity(Map.of("message", "Đặt bàn này đã được huỷ trước đó")).build();
+        if ("CONFIRMED".equals(reservation.status) && !isAdmin)
+            return Response.status(400).entity(Map.of("message", "Không thể huỷ đặt bàn đã xác nhận. Vui lòng liên hệ nhà hàng")).build();
+
         reservation.status = "CANCELLED";
+
+        // Chỉ trả bàn về AVAILABLE nếu không còn đặt bàn active nào khác tại bàn đó
         if (reservation.table != null) {
-            reservation.table.status = "AVAILABLE";
+            long activeCount = Reservation.count(
+                    "table.id = ?1 AND status IN ('PENDING', 'CONFIRMED') AND id != ?2",
+                    reservation.table.id, id);
+            if (activeCount == 0) reservation.table.status = "AVAILABLE";
         }
-        return Response.ok(Map.of("message", "Huy dat ban thanh cong")).build();
+
+        return Response.ok(Map.of("message", "Huỷ đặt bàn thành công")).build();
     }
 
     // ── DTOs ─────────────────────────────────────
