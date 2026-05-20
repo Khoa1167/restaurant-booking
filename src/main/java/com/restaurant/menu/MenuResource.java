@@ -11,11 +11,28 @@ import java.util.Map;
 @Consumes(MediaType.APPLICATION_JSON)
 public class MenuResource {
 
-    // Lấy tất cả món (public)
+    // Lấy tất cả món (public hoặc admin)
     @GET
-    public List<MenuItem> getAll() {
+    public List<MenuItem> getAll(@QueryParam("all") @DefaultValue("false") boolean all) {
+        if (all) {
+            return MenuItem.listAll();
+        }
         return MenuItem.findAvailable();
     }
+
+    // Lấy chi tiết một món ăn
+    @GET
+    @Path("/{id}")
+    public Response getById(@PathParam("id") Long id) {
+        MenuItem item = MenuItem.findById(id);
+        if (item == null) {
+            return Response.status(404)
+                    .entity(Map.of("message", "Khong tim thay mon an"))
+                    .build();
+        }
+        return Response.ok(item).build();
+    }
+
 
     // Lấy theo danh mục
     @GET

@@ -17,11 +17,17 @@ public class TableResource {
         return RestaurantTable.listAll();
     }
 
-    // Lấy bàn trống
+    // Lấy chi tiết bàn ăn
     @GET
-    @Path("/available")
-    public List<RestaurantTable> getAvailable() {
-        return RestaurantTable.findAvailable();
+    @Path("/{id}")
+    public Response getById(@PathParam("id") Long id) {
+        RestaurantTable table = RestaurantTable.findById(id);
+        if (table == null) {
+            return Response.status(404)
+                    .entity(Map.of("message", "Khong tim thay ban"))
+                    .build();
+        }
+        return Response.ok(table).build();
     }
 
     // Tạo bàn mới (admin)
@@ -33,7 +39,9 @@ public class TableResource {
                     .entity(Map.of("message", "Ten ban va suc chua khong hop le"))
                     .build();
         }
-        table.status = "AVAILABLE";
+        if (table.status == null) {
+            table.status = "AVAILABLE";
+        }
         table.persist();
         return Response.ok(table).status(201).build();
     }
@@ -50,6 +58,29 @@ public class TableResource {
                     .build();
         }
         table.status = body.status;
+        return Response.ok(table).build();
+    }
+
+    // Cập nhật chi tiết bàn ăn (admin)
+    @PUT
+    @Path("/{id}")
+    @Transactional
+    public Response update(@PathParam("id") Long id, RestaurantTable body) {
+        RestaurantTable table = RestaurantTable.findById(id);
+        if (table == null) {
+            return Response.status(404)
+                    .entity(Map.of("message", "Khong tim thay ban"))
+                    .build();
+        }
+        if (body.name == null || body.capacity <= 0) {
+            return Response.status(400)
+                    .entity(Map.of("message", "Ten ban va suc chua khong hop le"))
+                    .build();
+        }
+        table.name = body.name;
+        table.capacity = body.capacity;
+        table.status = body.status;
+        table.description = body.description;
         return Response.ok(table).build();
     }
 

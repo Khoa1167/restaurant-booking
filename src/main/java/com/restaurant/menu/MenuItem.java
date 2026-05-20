@@ -19,6 +19,8 @@ public class MenuItem extends PanacheEntity {
     @Column(nullable = false)
     public String price;
 
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
     public String icon;
 
     public boolean popular = false;

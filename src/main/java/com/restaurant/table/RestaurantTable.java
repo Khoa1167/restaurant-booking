@@ -1,13 +1,17 @@
 package com.restaurant.table;
 
-import io.quarkus.hibernate.orm.panache.PanacheEntity;
+import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.*;
 import java.util.List;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "restaurant_tables")
-public class RestaurantTable extends PanacheEntity {
+public class RestaurantTable extends PanacheEntityBase {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    public Long id;
 
     @Column(nullable = false)
     public String name;
