@@ -8,6 +8,7 @@ import com.restaurant.menu.MenuItem;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.*;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -25,11 +26,11 @@ public class AdminResource {
         long pendingReservations = Reservation.count("status", "PENDING");
         long confirmedReservations = Reservation.count("status", "CONFIRMED");
         long cancelledReservations = Reservation.count("status", "CANCELLED");
-        
+
         long totalTables = RestaurantTable.count();
         long availableTables = RestaurantTable.count("status", "AVAILABLE");
         long occupiedTables = RestaurantTable.count("status", "OCCUPIED");
-        
+
         long totalUsers = User.count();
         long totalReviews = Review.count();
         long totalDishes = MenuItem.count();
@@ -64,22 +65,22 @@ public class AdminResource {
         // Lấy 5 đơn đặt bàn mới nhất
         List<Reservation> recentReservations = Reservation.find("ORDER BY createdAt DESC").page(0, 5).list();
 
-        return Response.ok(Map.of(
-                "totalReservations",    totalReservations,
-                "pendingReservations",  pendingReservations,
-                "confirmedReservations",confirmedReservations,
-                "cancelledReservations",cancelledReservations,
-                "totalTables",          totalTables,
-                "availableTables",      availableTables,
-                "occupiedTables",       occupiedTables,
-                "totalUsers",           totalUsers,
-                "totalReviews",         totalReviews,
-                "totalDishes",          totalDishes,
-                "popularDishes",        popularDishes,
-                "avgRating",            avgRating,
-                "monthlyReservations",  monthlyReservations,
-                "recentReservations",   recentReservations
-        )).build();
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("totalReservations",    totalReservations);
+        stats.put("pendingReservations",  pendingReservations);
+        stats.put("confirmedReservations",confirmedReservations);
+        stats.put("cancelledReservations",cancelledReservations);
+        stats.put("totalTables",          totalTables);
+        stats.put("availableTables",      availableTables);
+        stats.put("occupiedTables",       occupiedTables);
+        stats.put("totalUsers",           totalUsers);
+        stats.put("totalReviews",         totalReviews);
+        stats.put("totalDishes",          totalDishes);
+        stats.put("popularDishes",        popularDishes);
+        stats.put("avgRating",            avgRating);
+        stats.put("monthlyReservations",  monthlyReservations);
+        stats.put("recentReservations",   recentReservations);
+        return Response.ok(stats).build();
     }
 
     // Lấy tất cả user (admin)
