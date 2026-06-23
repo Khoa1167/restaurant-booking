@@ -3,6 +3,7 @@ package com.restaurant.review;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.*;
+import com.restaurant.reservation.Reservation;
 import java.util.List;
 import java.util.Map;
 
@@ -36,6 +37,20 @@ public class ReviewResource {
         review.rating   = req.rating;
         review.comment  = req.comment;
         review.userName = req.userName != null ? req.userName : "Khach hang";
+        
+        if (req.reservationId != null) {
+            Reservation reservation = Reservation.findById(req.reservationId);
+            if (reservation != null) {
+                review.reservation = reservation;
+                if (reservation.user != null) {
+                    review.user = reservation.user;
+                    if (req.userName == null) {
+                        review.userName = reservation.user.name;
+                    }
+                }
+            }
+        }
+        
         review.persist();
 
         return Response.ok(review).status(201).build();

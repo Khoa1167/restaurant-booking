@@ -7,6 +7,7 @@ import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.*;
 import org.eclipse.microprofile.jwt.JsonWebToken;
+import com.restaurant.menu.MenuItem;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -29,8 +30,18 @@ public class ReservationResource {
     @GET
     @Path("/my")
     public List<Reservation> getMy(@QueryParam("userId") Long userId) {
-        if (userId == null) return Reservation.listAll();
-        return Reservation.findByUserId(userId);
+        if (userId == null) {
+            try {
+                String subject = jwt.getSubject();
+                if (subject != null) {
+                    userId = Long.parseLong(subject);
+                }
+            } catch (Exception ignored) {}
+        }
+        if (userId != null) {
+            return Reservation.findByUserId(userId);
+        }
+        return List.of();
     }
 
     // Tạo đặt bàn mới
@@ -78,6 +89,22 @@ public class ReservationResource {
                 reservation.user = user;
             }
         } catch (Exception ignored) {}
+
+        // Xử lý lưu các món ăn đặt kèm
+        if (req.orderItems != null) {
+            for (OrderItemRequest itemReq : req.orderItems) {
+                if (itemReq.menuItemId != null && itemReq.quantity > 0) {
+                    MenuItem menuItem = MenuItem.findById(itemReq.menuItemId);
+                    if (menuItem != null) {
+                        ReservationItem resItem = new ReservationItem();
+                        resItem.reservation = reservation;
+                        resItem.menuItem = menuItem;
+                        resItem.quantity = itemReq.quantity;
+                        reservation.items.add(resItem);
+                    }
+                }
+            }
+        }
 
         reservation.persist();
         table.status = "OCCUPIED";
@@ -135,6 +162,12 @@ public class ReservationResource {
         public LocalDateTime reservationTime;
         public int numberOfPeople;
         public String note;
+        public List<OrderItemRequest> orderItems;
+    }
+
+    public static class OrderItemRequest {
+        public Long menuItemId;
+        public int quantity;
     }
 
     public static class StatusRequest {

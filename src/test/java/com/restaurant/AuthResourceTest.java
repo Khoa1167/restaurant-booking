@@ -7,14 +7,14 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.is;
 
 @QuarkusTest
-class GreetingResourceTest {
+class AuthResourceTest {
+
     @Test
-    void testHelloEndpoint() {
+    void testHealthEndpoint() {
         given()
-          .when().get("/hello")
+          .when().get("/api/auth/health")
           .then()
              .statusCode(200)
-             .body(is("Hello from Quarkus REST"));
+             .body("status", is("ok"));
     }
-
 }

@@ -2,7 +2,9 @@ package com.restaurant.auth;
 
 import io.quarkus.elytron.security.common.BcryptUtil;
 import io.smallrye.jwt.build.Jwt;
+import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import org.eclipse.microprofile.jwt.JsonWebToken;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.*;
 import java.time.Duration;
@@ -13,6 +15,9 @@ import java.util.Set;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class AuthResource {
+
+    @Inject
+    JsonWebToken jwt;
 
     @POST
     @Path("/register")
@@ -78,13 +83,24 @@ public class AuthResource {
 
     @GET
     @Path("/me")
-    public Response me(@HeaderParam("Authorization") String authHeader) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return Response.status(401)
-                    .entity(Map.of("message", "Chua dang nhap"))
-                    .build();
-        }
-        return Response.ok(Map.of("status", "ok")).build();
+    public Response me() {
+        try {
+            String subject = jwt.getSubject();
+            if (subject != null) {
+                User user = User.findById(Long.parseLong(subject));
+                if (user != null) {
+                    return Response.ok(Map.of(
+                            "id",    user.id,
+                            "name",  user.name,
+                            "email", user.email,
+                            "role",  user.role
+                    )).build();
+                }
+            }
+        } catch (Exception ignored) {}
+        return Response.status(401)
+                .entity(Map.of("message", "Chua dang nhap"))
+                .build();
     }
 
     @GET

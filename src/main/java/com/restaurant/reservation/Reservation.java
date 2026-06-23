@@ -6,16 +6,17 @@ import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.ArrayList;
 
 @Entity
 @Table(name = "reservations")
 public class Reservation extends PanacheEntity {
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "table_id")
     public RestaurantTable table;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id")
     public User user;
 
@@ -35,17 +36,19 @@ public class Reservation extends PanacheEntity {
 
     public String note;
 
+    @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL,
+            orphanRemoval = true, fetch = FetchType.EAGER)
+    public List<ReservationItem> items = new ArrayList<>();
+
     @Column(nullable = false)
-    public String status = "PENDING"; // PENDING, CONFIRMED, CANCELLED
+    public String status = "PENDING";
 
     public LocalDateTime createdAt = LocalDateTime.now();
 
-    // Lấy reservation theo user
     public static List<Reservation> findByUserId(Long userId) {
         return list("user.id", userId);
     }
 
-    // Lấy tất cả theo trạng thái
     public static List<Reservation> findByStatus(String status) {
         return list("status", status);
     }

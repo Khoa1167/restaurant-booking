@@ -18,7 +18,6 @@ import java.util.stream.Collectors;
 @Consumes(MediaType.APPLICATION_JSON)
 public class AdminResource {
 
-    // Thống kê tổng quan
     @GET
     @Path("/stats")
     public Response getStats() {
@@ -42,11 +41,10 @@ public class AdminResource {
         if (reviews != null && !reviews.isEmpty()) {
             double sum = reviews.stream().mapToDouble(r -> r.rating).sum();
             avgRating = sum / reviews.size();
-            // Tròn 1 chữ số thập phân
             avgRating = Math.round(avgRating * 10.0) / 10.0;
         }
 
-        // Đặt bàn theo tháng trong năm hiện tại
+        // Đặt bàn theo tháng
         int currentYear = java.time.LocalDate.now().getYear();
         List<Reservation> allReservations = Reservation.listAll();
         int[] monthlyCounts = new int[12];
@@ -60,10 +58,14 @@ public class AdminResource {
                 }
             }
         }
-        List<Integer> monthlyReservations = Arrays.stream(monthlyCounts).boxed().collect(Collectors.toList());
+        List<Integer> monthlyReservations = Arrays.stream(monthlyCounts)
+                .boxed().collect(Collectors.toList());
 
-        // Lấy 5 đơn đặt bàn mới nhất
-        List<Reservation> recentReservations = Reservation.find("ORDER BY createdAt DESC").page(0, 5).list();
+        // Fix: lấy 5 đặt bàn mới nhất - dùng sort đúng cú pháp Panache
+        List<Reservation> recentReservations = Reservation
+                .find("id > 0 ORDER BY id DESC")
+                .page(io.quarkus.panache.common.Page.ofSize(5))
+                .list();
 
         Map<String, Object> stats = new HashMap<>();
         stats.put("totalReservations",    totalReservations);
@@ -83,14 +85,12 @@ public class AdminResource {
         return Response.ok(stats).build();
     }
 
-    // Lấy tất cả user (admin)
     @GET
     @Path("/users")
     public Response getAllUsers() {
         return Response.ok(User.listAll()).build();
     }
 
-    // Lấy tất cả review (admin)
     @GET
     @Path("/reviews")
     public Response getAllReviews() {

@@ -95,7 +95,13 @@ public class TableResource {
                     .entity(Map.of("message", "Khong tim thay ban"))
                     .build();
         }
-        table.delete();
-        return Response.noContent().build();
+        try {
+            table.delete();
+            return Response.noContent().build();
+        } catch (Exception e) {
+            return Response.status(400)
+                    .entity(Map.of("message", "Khong the xoa ban vi ban dang duoc su dung trong cac lich dat"))
+                    .build();
+        }
     }
 }
